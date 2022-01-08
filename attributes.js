@@ -51,16 +51,6 @@ async function province (pool, row) {
   }
 }
 
-// async function landuse (pool, row) {
-//   const query = `SELECT landuse FROM osm_polygon
-//     WHERE landuse <> '' AND
-//     ST_DWithin(geometry, $1, 0)`
-
-//   const rows = await runQuery(pool, query, [row.geometry])
-
-//   return rows.map((row) => row.landuse)
-// }
-
 const MIN_CHAIN_COUNT = 25
 const allChains = require('./chains.json')
 const chains = allChains.filter((chain) => chain.count > MIN_CHAIN_COUNT)
@@ -104,35 +94,6 @@ async function nearbyChains (pool, row, radius = DEFAULT_RADIUS) {
     count: chainRows.length
   }
 }
-
-// async function cityCenter (pool, row) {
-//   const query = `SELECT
-//       osm_id, name, ROUND(ST_Distance(geometry, $1)) AS distance FROM osm_point
-//     WHERE place = 'town' OR place = 'city' OR place = 'village' OR place = 'hamlet'
-//     ORDER BY geometry <-> $1
-//     LIMIT 1`
-
-//   const rows = await runQuery(pool, query, [row.geometry])
-//   return rows[0]
-// }
-
-// // TODO: add https://wiki.openstreetmap.org/wiki/Key:parking?uselang=en to mapping
-// async function nearbyParking (pool, row, radius = DEFAULT_RADIUS) {
-//   const query = `
-//     SELECT osm_id, ROUND(ST_Distance(geometry, $1)) AS distance FROM (
-//       (SELECT osm_id, amenity, geometry FROM planet_osm_point
-//         WHERE amenity = 'parking'
-//         ORDER BY geometry <-> $1 LIMIT 5)
-//       UNION
-//       (SELECT osm_id, amenity, geometry FROM planet_osm_polygon
-//         WHERE amenity = 'parking'
-//         ORDER BY geometry <-> $1 LIMIT 5)
-//     ) u
-//     ORDER BY geometry <-> $1 LIMIT 5`
-
-//   const rows = await runQuery(pool, query, [row.geometry])
-//   return rows
-// }
 
 async function nearbyFoodAndDrink (pool, row, radius = DEFAULT_RADIUS) {
   const amenities = [
@@ -188,7 +149,7 @@ async function nearbyShops (pool, row, radius = DEFAULT_RADIUS) {
       WHERE shop <> '' AND ST_DWithin(way, $1, $2))`
 
   const rows = await runQuery(pool, query, [row.geometry, radius])
-  // console.error(query, [row.geometry, radius])
+
   return rows.length
 }
 

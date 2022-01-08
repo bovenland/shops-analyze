@@ -12,10 +12,6 @@ const pool = new pg.Pool({
   port: 5432
 })
 
-function normalizeName (name) {
-  return name.replace(/[^0-9a-z]/gi, '')
-}
-
 async function run () {
   const query = `
     SELECT name, brand, "operator"

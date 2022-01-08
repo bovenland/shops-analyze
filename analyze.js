@@ -14,7 +14,7 @@ const argv = require('yargs')
     query: {
       alias: 'q',
       describe: 'OSM query to run',
-      choices: ['shops', 'boxes', 'service-points'],
+      choices: ['shops'],
       default: 'shops'
     }
   })
@@ -32,8 +32,6 @@ const pool = new pg.Pool({
   port: 5432
 })
 
-const minArea = 25000 // square meter
-
 const queries = {
   shops: (intersects) => `SELECT
     osm_id,
@@ -50,37 +48,7 @@ const queries = {
   FROM planet_osm_point
   WHERE
     ${intersects} AND
-    shop <> ''`,
-  boxes: (intersects) => `SELECT
-    osm_id,
-    name,
-    tags->'addr:street' AS street,
-    "addr:housenumber" AS house_number,
-    tags->'addr:postcode' AS postcode,
-    tags->'addr:city' AS city,
-    way AS geometry,
-    'box' AS type,
-    'way' AS osm_type,
-    ST_asGeoJSON(ST_Transform(way, 4326), 6) AS geojson
-  FROM planet_osm_polygon
-  WHERE
-    EXISTS (SELECT TRUE FROM bovenland.ibis WHERE ST_Intersects(way, geom)) AND
-    -- TODO: add intersection with OSM landuse:industrial
-    ${intersects} AND
-    building <> '' AND
-    ST_Area(geography(ST_Transform(way, 4326))) > ${minArea}
-    `,
-  'service-points': (intersects) => `SELECT
-    data->'name' AS name,
-    data->'company' AS operator,
-    data->'address' AS address,
-    'service-point' AS type,
-    NULL AS osm_type,
-    ST_asGeoJSON(ST_Transform(geometry, 4326), 6) AS geojson,
-    geometry
-  FROM bovenland.servicepoints
-  WHERE
-    ${intersects}`
+    shop <> ''`
 }
 
 async function analyze (argv, pool, row) {
